@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Course Recommendations — EduRecommend</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/static/style.css"/>
+  <style>
+    .course-results-header{display:flex;align-items:baseline;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap}
+    .course-results-header h2{font-family:'Playfair Display',serif;font-size:clamp(1.1rem,2.5vw,1.6rem)}
+    .boost-badge{font-size:.68rem;padding:2px 8px;border-radius:10px;border:1px solid var(--gold);color:var(--gold)}
+    .clear-link{font-size:.78rem;color:var(--muted);background:none;border:none;cursor:pointer;padding:0}
+    .clear-link:hover{color:var(--text)}
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <a href="/" class="site-logo">Edu<span>Recommend</span></a>
+  <nav class="site-nav">
+    <a href="/" class="nav-link" data-page="books">Books</a>
+    <a href="/courses.html" class="nav-link" data-page="courses">Courses</a>
+    <a href="/plan.html" class="nav-link" data-page="plan">Study Plan</a>
+    <span id="nav-user-slot"></span>
+    <a href="/profile.html" class="nav-profile-btn">Profile</a>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section style="padding:clamp(2rem,5vw,4rem) clamp(1rem,4vw,3rem) 1.5rem;max-width:820px">
+  <p style="font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:1rem">
+    TF-IDF Content-Based Filtering · 3,500+ Courses
+  </p>
+  <h1 style="font-family:'Playfair Display',serif;font-size:clamp(1.8rem,4vw,3.2rem);line-height:1.15;margin-bottom:1rem">
+    Find your next <em style="color:var(--gold)">course.</em>
+  </h1>
+  <p id="hero-sub" style="color:var(--muted);font-size:.9rem;line-height:1.7;max-width:500px;margin-bottom:2rem">
+    Type any topic — our TF-IDF model searches 3,500+ Coursera courses and ranks them by relevance to your query.
+  </p>
+
+  <div class="search-wrap" id="course-search-wrap">
+    <form class="search-form" id="course-form" autocomplete="off">
+      <input type="text" class="search-input" id="course-input"
+             placeholder="e.g. machine learning, web development, python basics…"
+             autocomplete="off" spellcheck="false"/>
+      <button type="submit" class="search-btn">Search Courses</button>
+    </form>
+    <ul class="autocomplete-list" id="course-ac"></ul>
+  </div>
+
+  <!-- Level filter chips -->
+  <div class="filter-chips" id="level-chips" style="margin-top:1rem">
+    <span class="chip active" data-level="">All Levels</span>
+    <span class="chip" data-level="Beginner">Beginner</span>
+    <span class="chip" data-level="Intermediate">Intermediate</span>
+    <span class="chip" data-level="Advanced">Advanced</span>
+    <span class="chip" data-level="Mixed">Mixed</span>
+  </div>
+</section>
+
+<!-- RESULTS -->
+<div id="results-wrap" style="padding:0 clamp(1rem,4vw,3rem);max-width:1100px;margin:0 auto;display:none">
+  <div class="course-results-header">
+    <h2 id="results-heading"></h2>
+    <span id="boost-badge" class="boost-badge" style="display:none">CSE boost applied</span>
+    <span class="section-rule"></span>
+    <span id="result-count" style="font-size:.72rem;color:var(--muted)"></span>
+    <button class="clear-link" id="clear-btn">✕ Clear</button>
+  </div>
+  <div id="results-container" class="course-grid"></div>
+</div>
+
+<!-- POPULAR -->
+<div id="popular-wrap" style="padding:0 clamp(1rem,4vw,3rem) 3rem;max-width:1100px;margin:0 auto">
+  <div class="section-head">
+    <h2 style="font-family:'Playfair Display',serif">Highest Rated Courses</h2>
+    <span class="section-badge">Top 30</span>
+    <span class="section-rule"></span>
+  </div>
+  <div id="popular-container" class="course-grid">
+    <div class="spinner-wrap"><div class="spinner"></div></div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <span>EduRecommend · TF-IDF Course Recommender</span>
+  <span>Coursera Dataset · 3,500+ Courses</span>
+</footer>
+
+<script src="/static/utils.js"></script>
+<script>
+initNav('courses');
+const profile = Profile.get();
+
+// Show branch boost note for CSE users
+if (profile.branch === 'CSE') {
+  document.getElementById('hero-sub').innerHTML +=
+    ' <span style="color:var(--gold)">Your CSE profile applies a relevance boost to CS/Data courses.</span>';
+}
+
+// Pre-fill from profile interest
+const courseInput = document.getElementById('course-input');
+if (profile.isSet && profile.interests.length && !courseInput.value) {
+  courseInput.placeholder = `Try "${profile.interests[0]}"…`;
+}
+
+const activeLevel = () =>
+  document.querySelector('.chip.active[data-level]')?.dataset.level || '';
+
+// Level chips
+document.querySelectorAll('.chip[data-level]').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.chip[data-level]').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    const q = courseInput.value.trim();
+    if (q.length >= 2) doSearch(q);
+  });
+});
+
+// Autocomplete
+initAutocomplete(courseInput, document.getElementById('course-ac'),
+  '/api/v1/courses/autocomplete', val => { courseInput.value=val; doSearch(val); });
+
+// Form submit
+document.getElementById('course-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const q = courseInput.value.trim();
+  if (q.length >= 2) doSearch(q);
+});
+
+// Clear
+document.getElementById('clear-btn').addEventListener('click', () => {
+  document.getElementById('results-wrap').style.display   = 'none';
+  document.getElementById('popular-wrap').style.display   = 'block';
+  courseInput.value = '';
+});
+
+async function doSearch(topic) {
+  const wrap  = document.getElementById('results-wrap');
+  const cont  = document.getElementById('results-container');
+  const head  = document.getElementById('results-heading');
+  const count = document.getElementById('result-count');
+  const boost = document.getElementById('boost-badge');
+
+  document.getElementById('popular-wrap').style.display = 'none';
+  wrap.style.display = 'block';
+  head.innerHTML = `Results for <em style="color:var(--gold)">"${escHtml(topic)}"</em>`;
+  count.textContent = '';
+  boost.style.display = 'none';
+  showSpinner(cont);
+  wrap.scrollIntoView({behavior:'smooth',block:'start'});
+
+  const body = { topic, n: 10 };
+  const lvl  = activeLevel();
+  if (lvl)             body.level  = lvl;
+  if (profile.branch)  body.branch = profile.branch;
+
+  const {data,ok,error} = await apiPost('/api/v1/courses/recommend', body);
+
+  if (!ok) { showError(cont, error || 'Could not fetch courses.'); return; }
+
+  const results = data.results || [];
+  count.textContent = `${results.length} course${results.length !== 1 ? 's' : ''}`;
+  if (data.branch_boost) boost.style.display = 'inline';
+
+  if (!results.length) { showEmpty(cont, 'No courses found. Try a broader topic.'); return; }
+
+  cont.innerHTML = results.map((c,i) => courseCard(c, i, topic)).join('');
+
+  // Wire feedback buttons
+  cont.querySelectorAll('.thumb-btn').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const rel = this.dataset.rel === '1';
+      this.closest('.feedback-row').querySelectorAll('.thumb-btn')
+          .forEach(b => b.classList.remove('voted-up','voted-down'));
+      this.classList.add(rel ? 'voted-up' : 'voted-down');
+      await submitFeedback(this.dataset.q, this.dataset.item, 'course', rel);
+    });
+  });
+}
+
+function courseCard(c, i, query) {
+  const levelCls = ['Beginner','Intermediate','Advanced','Mixed'].includes(c.level) ? c.level : 'Mixed';
+  return `
+    <div class="course-card fade-up" style="animation-delay:${i*45}ms">
+      <div class="course-title">${escHtml(c.course_title)}</div>
+      <div class="course-meta">
+        <span class="level-pill ${levelCls}">${escHtml(c.level)}</span>
+        <span class="course-subject">${escHtml(c.subject)}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:.75rem">
+        <span class="course-rating">${stars(c.rating)} ${c.rating.toFixed(1)}</span>
+        <span class="course-score">score: ${c.score.toFixed(3)}</span>
+      </div>
+      <a class="enrol-btn" href="${escHtml(c.course_url||'#')}" target="_blank" rel="noopener">
+        Enrol on Coursera →
+      </a>
+      <div class="feedback-row">
+        <span class="feedback-label">Relevant?</span>
+        <button class="thumb-btn" data-q="${escHtml(query)}" data-item="${escHtml(c.course_title)}" data-rel="1">▲</button>
+        <button class="thumb-btn" data-q="${escHtml(query)}" data-item="${escHtml(c.course_title)}" data-rel="0">▼</button>
+      </div>
+    </div>`;
+}
+
+// Popular courses
+async function loadPopular() {
+  const cont = document.getElementById('popular-container');
+  const {data,ok} = await apiGet('/api/v1/courses/popular?n=30');
+  if (!ok || !data?.courses?.length) { showEmpty(cont,'Could not load courses.'); return; }
+  cont.innerHTML = data.courses.map((c,i) => {
+    const lc = ['Beginner','Intermediate','Advanced','Mixed'].includes(c.level) ? c.level : 'Mixed';
+    return `
+      <div class="course-card fade-up" style="animation-delay:${i*25}ms">
+        <div class="course-title">${escHtml(c.course_title)}</div>
+        <div class="course-meta">
+          <span class="level-pill ${lc}">${escHtml(c.level)}</span>
+          <span class="course-subject">${escHtml(c.subject)}</span>
+        </div>
+        <span class="course-rating">${stars(c.rating)} ${c.rating.toFixed(1)}</span>
+        <a class="enrol-btn" href="${escHtml(c.course_url||'#')}" target="_blank" rel="noopener">
+          Enrol on Coursera →
+        </a>
+      </div>`;
+  }).join('');
+}
+
+loadPopular();
+</script>
+</body>
+</html>

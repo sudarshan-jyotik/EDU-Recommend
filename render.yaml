@@ -1,0 +1,30 @@
+# render.yaml
+# Render.com deployment configuration
+# Commit this file to your repo root — Render reads it automatically.
+#
+# Usage:
+#   1. Push this file to GitHub
+#   2. Go to render.com → New → Blueprint
+#   3. Connect your repo → Render reads render.yaml and deploys
+#
+# Alternatively, deploy manually:
+#   1. New Web Service → connect repo
+#   2. Runtime: Docker  (Render will use your Dockerfile)
+#   3. Health check path: /health
+
+services:
+  - type: web
+    name: edu-recommend
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: MODEL_DIR
+        value: models
+      - key: FEEDBACK_LOG_PATH
+        value: feedback_log.jsonl
+      - key: DEBUG
+        value: false
+      - key: SKIP_MODEL_TESTS
+        value: "1"

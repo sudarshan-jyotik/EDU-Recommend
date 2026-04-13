@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Book Results — EduRecommend</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/static/style.css"/>
+</head>
+<body>
+
+<header class="site-header">
+  <a href="/" class="site-logo">Edu<span>Recommend</span></a>
+  <nav class="site-nav">
+    <a href="/" class="nav-link" data-page="books">Books</a>
+    <a href="/courses.html" class="nav-link" data-page="courses">Courses</a>
+    <a href="/plan.html" class="nav-link" data-page="plan">Study Plan</a>
+    <span id="nav-user-slot"></span>
+    <a href="/profile.html" class="nav-profile-btn">Profile</a>
+  </nav>
+</header>
+
+<main class="page-main">
+
+  <!-- Back link -->
+  <a href="/" class="back-link">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M15 18l-6-6 6-6"/>
+    </svg>
+    Back to homepage
+  </a>
+
+  <!-- Query heading -->
+  <div style="margin-bottom:2rem">
+    <p style="font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem">
+      Recommendations based on
+    </p>
+    <h1 id="page-title" style="font-family:'Playfair Display',serif;font-size:clamp(1.6rem,3.5vw,2.6rem);line-height:1.15"></h1>
+    <div style="margin-top:.75rem;display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
+      <span style="font-size:.68rem;padding:2px 8px;border-radius:10px;border:1px solid var(--border);color:var(--muted)">
+        KNN · Cosine Similarity
+      </span>
+      <span id="result-count" style="font-size:.72rem;color:var(--muted)"></span>
+    </div>
+  </div>
+
+  <!-- Search again -->
+  <div style="margin-bottom:2.5rem">
+    <div class="search-wrap" id="search-wrap">
+      <form class="search-form" id="search-form" autocomplete="off">
+        <input type="text" class="search-input" id="search-input"
+               placeholder="Search another book…" autocomplete="off" spellcheck="false"/>
+        <button type="submit" class="search-btn">Search</button>
+      </form>
+      <ul class="autocomplete-list" id="ac-list"></ul>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="results-container"></div>
+
+</main>
+
+<footer class="site-footer">
+  <span>EduRecommend · KNN Collaborative Filtering</span>
+  <span>Book-Crossing Dataset</span>
+</footer>
+
+<script src="/static/utils.js"></script>
+<script>
+initNav('books');
+
+// ── Read query from URL params ──────────────────────────────────
+const params    = new URLSearchParams(window.location.search);
+const initQuery = params.get('q') || '';
+
+const searchInput = document.getElementById('search-input');
+if (initQuery) {
+  searchInput.value = initQuery;
+  doSearch(initQuery);
+} else {
+  // No query — redirect home
+  window.location.href = '/';
+}
+
+// ── Autocomplete ────────────────────────────────────────────────
+initAutocomplete(searchInput, document.getElementById('ac-list'),
+  '/api/v1/books/autocomplete', title => {
+    searchInput.value = title;
+    doSearch(title);
+  });
+
+// ── Search form ─────────────────────────────────────────────────
+document.getElementById('search-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const q = searchInput.value.trim();
+  if (q) doSearch(q);
+});
+
+async function doSearch(title) {
+  const container = document.getElementById('results-container');
+  const heading   = document.getElementById('page-title');
+  const count     = document.getElementById('result-count');
+
+  heading.innerHTML = `<em style="color:var(--gold)">"${escHtml(truncate(title,50))}"</em>`;
+  count.textContent = '';
+  showSpinner(container);
+
+  // Update URL so the page is bookmarkable
+  const url = new URL(window.location);
+  url.searchParams.set('q', title);
+  window.history.replaceState({}, '', url);
+
+  const {data,ok,error} = await apiPost('/api/v1/books/recommend', {book_name:title, n:10});
+
+  if (!ok) {
+    const suggestions = data?.detail?.suggestions || [];
+    count.textContent = '0 results';
+    showError(container, error || `"${title}" not found in model.`, suggestions,
+      val => { searchInput.value=val; doSearch(val); });
+    return;
+  }
+
+  const results = data.results || [];
+  count.textContent = `${results.length} result${results.length !== 1 ? 's' : ''}`;
+  renderResults(results, title);
+}
+
+function renderResults(results, query) {
+  const container = document.getElementById('results-container');
+  if (!results.length) {
+    showEmpty(container, 'No similar books found. Try a different title.');
+    return;
+  }
+
+  container.innerHTML = `<div class="card-grid">
+    ${results.map((r,i) => `
+      <div class="book-card fade-up" style="animation-delay:${i*70}ms">
+        <div class="cover-wrap">
+          ${coverOrPlaceholder(r.cover, r.title)}
+          <span class="rank-badge">#${i+1}</span>
+          <div class="sim-badge">
+            <span class="sim-label">Match</span>
+            <div class="sim-bar"><div class="sim-fill" style="width:${r.similarity}%"></div></div>
+            <span class="sim-pct">${r.similarity.toFixed(1)}%</span>
+          </div>
+        </div>
+        <p class="card-title">${escHtml(r.title)}</p>
+        <p class="card-author">${escHtml(r.author)}</p>
+        <button class="enrol-btn" style="margin-top:.5rem;font-size:.72rem"
+          onclick="searchInput.value=${JSON.stringify(r.title)};doSearch(${JSON.stringify(r.title)})">
+          Similar to this →
+        </button>
+        <div class="feedback-row">
+          <span class="feedback-label">Helpful?</span>
+          <button class="thumb-btn" data-q="${escHtml(query)}" data-item="${escHtml(r.title)}" data-rel="1">▲</button>
+          <button class="thumb-btn" data-q="${escHtml(query)}" data-item="${escHtml(r.title)}" data-rel="0">▼</button>
+        </div>
+      </div>`).join('')}
+  </div>`;
+
+  animateSimBars();
+
+  container.querySelectorAll('.thumb-btn').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const relevant = this.dataset.rel === '1';
+      this.closest('.feedback-row').querySelectorAll('.thumb-btn')
+          .forEach(b => b.classList.remove('voted-up','voted-down'));
+      this.classList.add(relevant ? 'voted-up' : 'voted-down');
+      await submitFeedback(this.dataset.q, this.dataset.item, 'book', relevant);
+    });
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Set Up Your Profile — EduRecommend</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    .profile-wrap {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+    .profile-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 540px;
+    }
+    .profile-card .brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      color: var(--gold);
+      margin-bottom: 0.3rem;
+    }
+    .profile-card .brand span { color: var(--text); }
+    .profile-card .subtitle {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 2rem;
+    }
+    .form-group { margin-bottom: 1.4rem; }
+    .form-label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+    .form-select,
+    .form-input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.65rem 0.9rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      appearance: none;
+    }
+    .form-select:focus,
+    .form-input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201,168,76,0.12);
+    }
+    .select-wrap { position: relative; }
+    .select-wrap::after {
+      content: '';
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 5px solid var(--muted);
+      pointer-events: none;
+    }
+    .interest-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 0.5rem;
+    }
+    .interest-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      user-select: none;
+    }
+    .interest-item:hover { border-color: var(--gold-dim); }
+    .interest-item.selected {
+      border-color: var(--gold);
+      background: rgba(201,168,76,0.08);
+    }
+    .interest-item input[type="checkbox"] {
+      display: none;
+    }
+    .interest-check {
+      width: 16px;
+      height: 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .interest-item.selected .interest-check {
+      background: var(--gold);
+      border-color: var(--gold);
+    }
+    .interest-check::after {
+      content: '';
+      display: none;
+      width: 4px;
+      height: 7px;
+      border-right: 2px solid #000;
+      border-bottom: 2px solid #000;
+      transform: rotate(45deg) translate(-1px, -1px);
+    }
+    .interest-item.selected .interest-check::after { display: block; }
+    .interest-label { font-size: 0.82rem; color: var(--text); }
+    .form-textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.65rem 0.9rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      color: var(--text);
+      outline: none;
+      resize: vertical;
+      min-height: 80px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-textarea:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201,168,76,0.12);
+    }
+    .char-count {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-align: right;
+      margin-top: 0.3rem;
+    }
+    .submit-btn {
+      width: 100%;
+      background: var(--gold);
+      border: none;
+      border-radius: 8px;
+      padding: 0.85rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #0d0d0d;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      margin-top: 0.5rem;
+    }
+    .submit-btn:hover { background: #d4b050; }
+    .submit-btn:active { transform: scale(0.98); }
+    .skip-link {
+      display: block;
+      text-align: center;
+      margin-top: 1rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .skip-link:hover { color: var(--text); }
+    .error-msg {
+      color: #e05555;
+      font-size: 0.78rem;
+      margin-top: 0.3rem;
+      display: none;
+    }
+    .section-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 1.5rem 0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="profile-wrap">
+  <div class="profile-card">
+    <div class="brand">Edu<span>Recommend</span></div>
+    <div class="subtitle">Tell us about yourself — we'll personalise your recommendations</div>
+
+    <form id="profile-form" novalidate>
+
+      <!-- Branch -->
+      <div class="form-group">
+        <label class="form-label" for="branch">Engineering branch *</label>
+        <div class="select-wrap">
+          <select class="form-select" id="branch" required>
+            <option value="">Select your branch</option>
+            <option value="CSE">Computer Science Engineering (CSE)</option>
+            <option value="IT">Information Technology (IT)</option>
+            <option value="ECE">Electronics & Communication (ECE)</option>
+            <option value="EEE">Electrical & Electronics (EEE)</option>
+            <option value="ME">Mechanical Engineering (ME)</option>
+            <option value="CE">Civil Engineering (CE)</option>
+            <option value="CH">Chemical Engineering (CH)</option>
+            <option value="BT">Biotechnology (BT)</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="error-msg" id="branch-error">Please select your branch.</div>
+      </div>
+
+      <!-- Semester -->
+      <div class="form-group">
+        <label class="form-label" for="semester">Current semester *</label>
+        <div class="select-wrap">
+          <select class="form-select" id="semester" required>
+            <option value="">Select semester</option>
+            <option value="1">Semester 1</option>
+            <option value="2">Semester 2</option>
+            <option value="3">Semester 3</option>
+            <option value="4" selected>Semester 4</option>
+            <option value="5">Semester 5</option>
+            <option value="6">Semester 6</option>
+            <option value="7">Semester 7</option>
+            <option value="8">Semester 8</option>
+          </select>
+        </div>
+        <div class="error-msg" id="semester-error">Please select your semester.</div>
+      </div>
+
+      <hr class="section-divider" />
+
+      <!-- Interests -->
+      <div class="form-group">
+        <label class="form-label">Interests <span style="font-weight:300;text-transform:none">(select all that apply)</span></label>
+        <div class="interest-grid" id="interest-grid">
+          <label class="interest-item" data-value="Machine Learning">
+            <input type="checkbox" value="Machine Learning" />
+            <span class="interest-check"></span>
+            <span class="interest-label">Machine Learning</span>
+          </label>
+          <label class="interest-item" data-value="Web Development">
+            <input type="checkbox" value="Web Development" />
+            <span class="interest-check"></span>
+            <span class="interest-label">Web Development</span>
+          </label>
+          <label class="interest-item" data-value="Data Science">
+            <input type="checkbox" value="Data Science" />
+            <span class="interest-check"></span>
+            <span class="interest-label">Data Science</span>
+          </label>
+          <label class="interest-item" data-value="DSA">
+            <input type="checkbox" value="DSA" />
+            <span class="interest-check"></span>
+            <span class="interest-label">DSA / Competitive</span>
+          </label>
+          <label class="interest-item" data-value="Cloud Computing">
+            <input type="checkbox" value="Cloud Computing" />
+            <span class="interest-check"></span>
+            <span class="interest-label">Cloud Computing</span>
+          </label>
+          <label class="interest-item" data-value="Mobile Development">
+            <input type="checkbox" value="Mobile Development" />
+            <span class="interest-check"></span>
+            <span class="interest-label">Mobile Dev</span>
+          </label>
+          <label class="interest-item" data-value="Cybersecurity">
+            <input type="checkbox" value="Cybersecurity" />
+            <span class="interest-check"></span>
+            <span class="interest-label">Cybersecurity</span>
+          </label>
+          <label class="interest-item" data-value="System Design">
+            <input type="checkbox" value="System Design" />
+            <span class="interest-check"></span>
+            <span class="interest-label">System Design</span>
+          </label>
+          <label class="interest-item" data-value="Python">
+            <input type="checkbox" value="Python" />
+            <span class="interest-check"></span>
+            <span class="interest-label">Python</span>
+          </label>
+          <label class="interest-item" data-value="Database">
+            <input type="checkbox" value="Database" />
+            <span class="interest-check"></span>
+            <span class="interest-label">Databases</span>
+          </label>
+        </div>
+      </div>
+
+      <hr class="section-divider" />
+
+      <!-- Goal -->
+      <div class="form-group">
+        <label class="form-label" for="goal">Your current goal *</label>
+        <textarea
+          class="form-textarea"
+          id="goal"
+          placeholder="e.g. Prepare for GATE exam, get a web dev internship, crack Amazon SDE interview..."
+          maxlength="300"
+          required
+        ></textarea>
+        <div class="char-count"><span id="goal-count">0</span> / 300</div>
+        <div class="error-msg" id="goal-error">Please describe your goal (min 5 characters).</div>
+      </div>
+
+      <button type="submit" class="submit-btn">Save Profile &amp; Get Recommendations</button>
+    </form>
+
+    <a href="/" class="skip-link">Skip for now — browse without a profile</a>
+  </div>
+</div>
+
+<script>
+  // ── Restore saved values ─────────────────────────────────────────────
+  const saved = {
+    branch  : localStorage.getItem('userBranch')    || '',
+    semester: localStorage.getItem('userSemester')  || '4',
+    interests: JSON.parse(localStorage.getItem('userInterests') || '[]'),
+    goal    : localStorage.getItem('userGoal')      || '',
+  };
+
+  document.getElementById('branch').value   = saved.branch;
+  document.getElementById('semester').value = saved.semester;
+  document.getElementById('goal').value     = saved.goal;
+  updateCharCount();
+
+  // Restore interest checkboxes
+  document.querySelectorAll('.interest-item').forEach(item => {
+    const val = item.getAttribute('data-value');
+    if (saved.interests.includes(val)) {
+      item.classList.add('selected');
+      item.querySelector('input').checked = true;
+    }
+  });
+
+  // ── Interest toggle ──────────────────────────────────────────────────
+  document.querySelectorAll('.interest-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const cb = item.querySelector('input');
+      cb.checked = !cb.checked;
+      item.classList.toggle('selected', cb.checked);
+    });
+  });
+
+  // ── Character counter ────────────────────────────────────────────────
+  document.getElementById('goal').addEventListener('input', updateCharCount);
+  function updateCharCount() {
+    const len = document.getElementById('goal').value.length;
+    document.getElementById('goal-count').textContent = len;
+  }
+
+  // ── Form submit ──────────────────────────────────────────────────────
+  document.getElementById('profile-form').addEventListener('submit', e => {
+    e.preventDefault();
+
+    const branch   = document.getElementById('branch').value.trim();
+    const semester = document.getElementById('semester').value.trim();
+    const goal     = document.getElementById('goal').value.trim();
+    const interests = [...document.querySelectorAll('.interest-item input:checked')]
+                      .map(cb => cb.value);
+
+    // Validate
+    let valid = true;
+
+    if (!branch) {
+      document.getElementById('branch-error').style.display = 'block';
+      valid = false;
+    } else {
+      document.getElementById('branch-error').style.display = 'none';
+    }
+
+    if (!semester) {
+      document.getElementById('semester-error').style.display = 'block';
+      valid = false;
+    } else {
+      document.getElementById('semester-error').style.display = 'none';
+    }
+
+    if (goal.length < 5) {
+      document.getElementById('goal-error').style.display = 'block';
+      valid = false;
+    } else {
+      document.getElementById('goal-error').style.display = 'none';
+    }
+
+    if (!valid) return;
+
+    // Save to localStorage — no server session needed (decoupled frontend)
+    localStorage.setItem('userBranch',    branch);
+    localStorage.setItem('userSemester',  semester);
+    localStorage.setItem('userGoal',      goal);
+    localStorage.setItem('userInterests', JSON.stringify(interests));
+    localStorage.setItem('profileSet',    'true');
+
+    // Redirect to homepage
+    window.location.href = '/';
+  });
+</script>
+</body>
+</html>

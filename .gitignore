@@ -1,0 +1,44 @@
+# Python
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Environment
+.env
+
+# Jupyter
+.ipynb_checkpoints/
+notebooks/.ipynb_checkpoints/
+
+# Large datasets — download separately
+data/Books.csv
+data/Ratings.csv
+data/Users.csv
+
+# Runtime
+feedback_log.jsonl
+
+# Test cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large model files — use git-lfs or cloud storage if > 100MB
+models/*.pkl
