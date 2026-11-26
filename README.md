@@ -24,8 +24,8 @@ EduRecommend helps students discover relevant books, technical courses, and stru
 
 ## Live Deployments
 
-- **Vercel:** *(updated once deployed)*
-- **Render:** *(updated once deployed)*
+- **Vercel:** https://edu-recommend.vercel.app
+- **Render:** https://edu-recommend.onrender.com
 
 Both deployments serve the interactive web UI (`/`), Swagger API docs (`/docs`), ReDoc (`/redoc`), and health check (`/health`).
 
@@ -183,9 +183,9 @@ EDU-Recommend/
 2. On [render.com](https://render.com), choose **New → Blueprint** (or **New → Web Service** with Docker runtime) and connect `sudarshan-jyotik/EDU-Recommend`.
 3. Render automatically reads `render.yaml` and builds `Dockerfile` with health check `/health`.
 
-### Vercel (Serverless FastAPI + Static CDN)
-1. Import `sudarshan-jyotik/EDU-Recommend` on [vercel.com](https://vercel.com) or run `vercel --prod`.
-2. Vercel uses `vercel.json` to serve `frontend/` from the edge CDN and route `/api/*`, `/health`, `/docs`, `/redoc`, and `/openapi.json` to `api/index.py`.
+### Vercel (FastAPI Serverless)
+1. Import `sudarshan-jyotik/EDU-Recommend` on [vercel.com](https://vercel.com) (Application Preset: **FastAPI**) or run `vercel --prod`.
+2. FastAPI (`app/main.py` / `api/index.py`) serves both the API endpoints and the `frontend/` static UI directly, with `.vercelignore` keeping the serverless bundle slim.
 
 ---
 
