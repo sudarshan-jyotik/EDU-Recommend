@@ -17,7 +17,8 @@ async def get_popular_courses(
 ):
     if rec is None:
         raise HTTPException(503, detail="Course model not loaded.")
-    return PopularCoursesResponse(courses=rec.get_popular(n=n), total=n)
+    courses = rec.get_popular(n=n)
+    return PopularCoursesResponse(courses=courses, total=len(courses))
 
 
 @router.post("/recommend", response_model=CourseRecommendResponse)

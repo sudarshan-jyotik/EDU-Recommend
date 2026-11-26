@@ -22,7 +22,7 @@ jobs:
       - name: Upgrade pip and install deps
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
 
       - name: Download NLTK data
         run: python scripts/download_nltk.py
@@ -32,7 +32,5 @@ jobs:
           python -c "from app.main import app; print('app: OK')"
           python -c "from app.recommenders.study_plan import StudyPlanGenerator; g=StudyPlanGenerator(); print('plan: OK')"
 
-      - name: Run tests (skip ML — no pickles in CI)
-        env:
-          SKIP_MODEL_TESTS: "1"
+      - name: Run full test suite
         run: pytest tests/ -v --tb=short

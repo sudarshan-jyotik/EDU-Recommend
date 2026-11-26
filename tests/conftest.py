@@ -13,9 +13,9 @@ skip_ml = pytest.mark.skipif(SKIP_ML, ...) in each test file.
 import os
 import pytest
 
-# Set this env var to skip all tests that need ML pickles (for CI)
-SKIP_ML = os.getenv("SKIP_MODEL_TESTS", "0") == "1" or \
-          not os.path.exists("models/book_model.pkl")
+# Set this env var to skip all tests that need ML artifacts (for CI without models)
+HAS_BOOK_MODEL = os.path.exists("models/books_bundle.npz") or os.path.exists("models/book_model.pkl")
+SKIP_ML = os.getenv("SKIP_MODEL_TESTS", "0") == "1" or not HAS_BOOK_MODEL
 
 
 def pytest_configure(config):

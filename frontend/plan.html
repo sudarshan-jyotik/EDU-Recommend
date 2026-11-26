@@ -258,13 +258,13 @@ function exportPDF() {
   doc.setFont('helvetica','bold');
   doc.setFontSize(17);
   doc.setTextColor(30,30,30);
-  doc.text('EduRecommend — Study Plan', margin, y); y+=8;
+  doc.text('EduRecommend - Study Plan', margin, y); y+=8;
 
   doc.setFont('helvetica','normal');
   doc.setFontSize(10);
   doc.setTextColor(80,80,80);
   doc.text(`Goal: ${lastPlanData.goal}`, margin, y, {maxWidth: pageW-2*margin}); y+=6;
-  doc.text(`Domain: ${lastPlanData.detected_domain}   ·   ${lastPlanData.total_days} days   ·   ${lastPlanData.total_hours} hours total`, margin, y); y+=8;
+  doc.text(`Domain: ${lastPlanData.detected_domain} | ${lastPlanData.total_days} days | ${lastPlanData.total_hours} hours total`, margin, y); y+=8;
 
   doc.setDrawColor(210,210,210);
   doc.line(margin, y, pageW-margin, y); y+=6;
@@ -274,13 +274,13 @@ function exportPDF() {
     doc.setFont('helvetica','bold');
     doc.setFontSize(10);
     doc.setTextColor(30,30,30);
-    doc.text(`Day ${day.day}  —  ${day.topic}`, margin, y); y+=5;
+    doc.text(`Day ${day.day} - ${day.topic}`, margin, y); y+=5;
     doc.setFont('helvetica','normal');
     doc.setFontSize(9);
     doc.setTextColor(90,90,90);
-    (day.subtopics||[]).forEach(s => { checkY(5); doc.text(`  • ${s}`, margin+3, y); y+=4.5; });
+    (day.subtopics||[]).forEach(s => { checkY(5); doc.text(`  * ${s}`, margin+3, y); y+=4.5; });
     doc.setTextColor(150,120,50);
-    doc.text(`  ${day.hours}h${day.day_type==='revision'?' · Revision':''}`, margin+3, y); y+=6;
+    doc.text(`  ${day.hours}h${day.day_type==='revision'?' - Revision':''}`, margin+3, y); y+=6;
   });
 
   const total = doc.internal.getNumberOfPages();
@@ -288,7 +288,7 @@ function exportPDF() {
     doc.setPage(i);
     doc.setFontSize(8);
     doc.setTextColor(180,180,180);
-    doc.text(`EduRecommend  ·  Page ${i} of ${total}`, margin, pageH-10);
+    doc.text(`EduRecommend | Page ${i} of ${total}`, margin, pageH-10);
   }
 
   doc.save(`study-plan-${lastPlanData.detected_domain}-${lastPlanData.total_days}days.pdf`);

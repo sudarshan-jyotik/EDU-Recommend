@@ -9,9 +9,9 @@ import os
 import pytest
 from fastapi.testclient import TestClient
 
-SKIP_ML = os.getenv("SKIP_MODEL_TESTS", "0") == "1" or \
-          not os.path.exists("models/book_model.pkl")
-skip_ml = pytest.mark.skipif(SKIP_ML, reason="ML pickles not in models/")
+HAS_BOOK_MODEL = os.path.exists("models/books_bundle.npz") or os.path.exists("models/book_model.pkl")
+SKIP_ML = os.getenv("SKIP_MODEL_TESTS", "0") == "1" or not HAS_BOOK_MODEL
+skip_ml = pytest.mark.skipif(SKIP_ML, reason="ML artifacts not in models/")
 
 from app.main import app
 

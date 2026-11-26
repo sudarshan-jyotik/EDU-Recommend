@@ -152,8 +152,8 @@ function renderResults(results, query) {
         </div>
         <p class="card-title">${escHtml(r.title)}</p>
         <p class="card-author">${escHtml(r.author)}</p>
-        <button class="enrol-btn" style="margin-top:.5rem;font-size:.72rem"
-          onclick="searchInput.value=${JSON.stringify(r.title)};doSearch(${JSON.stringify(r.title)})">
+        <button class="enrol-btn similar-btn" style="margin-top:.5rem;font-size:.72rem"
+          data-title="${escHtml(r.title)}">
           Similar to this →
         </button>
         <div class="feedback-row">
@@ -165,6 +165,14 @@ function renderResults(results, query) {
   </div>`;
 
   animateSimBars();
+
+  container.querySelectorAll('.similar-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const t = btn.getAttribute('data-title');
+      searchInput.value = t;
+      doSearch(t);
+    });
+  });
 
   container.querySelectorAll('.thumb-btn').forEach(btn => {
     btn.addEventListener('click', async function() {
@@ -195,8 +203,8 @@ async function loadPopular() {
     const score  = book.score || 0;
     const pct    = Math.min(100, Math.round((score/topScore)*100));
     return `
-      <div class="book-card fade-up" style="animation-delay:${Math.min(i*20,600)}ms"
-           onclick="searchInput.value=${JSON.stringify(title)};doSearch(${JSON.stringify(title)})">
+      <div class="book-card fade-up popular-book-card" style="animation-delay:${Math.min(i*20,600)}ms"
+           data-title="${escHtml(title)}">
         <div class="cover-wrap">
           ${coverOrPlaceholder(cover, title)}
           <span class="rank-badge">${i+1}</span>
@@ -207,6 +215,14 @@ async function loadPopular() {
         <p class="card-score">★ ${score.toFixed(2)}</p>
       </div>`;
   }).join('');
+
+  grid.querySelectorAll('.popular-book-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const t = card.getAttribute('data-title');
+      searchInput.value = t;
+      doSearch(t);
+    });
+  });
 }
 
 loadPopular();

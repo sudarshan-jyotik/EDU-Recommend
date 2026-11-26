@@ -39,7 +39,7 @@ ok "pip upgraded"
 
 # Install requirements
 info "Installing dependencies (this takes 1-2 minutes)..."
-pip install -r requirements.txt --quiet
+pip install -r requirements-dev.txt --quiet
 ok "All dependencies installed"
 
 # Download NLTK data
@@ -55,15 +55,15 @@ FEEDBACK_LOG_PATH=feedback_log.jsonl
 DEBUG=false" > .env
 ok ".env ready"
 
-# Check pickles
+# Check model bundles
 echo ""
-echo "Checking ML model pickles..."
+echo "Checking ML model artifacts..."
 MISSING=0
-for pkl in book_model book_pivot popular_df books_meta course_tfidf course_sim courses_df; do
-  if [ -f "models/${pkl}.pkl" ]; then
-    ok "models/${pkl}.pkl"
+for f in books_bundle.npz books_meta.json.gz courses_bundle.json.gz; do
+  if [ -f "models/${f}" ]; then
+    ok "models/${f}"
   else
-    warn "models/${pkl}.pkl — missing (run the pipeline notebooks)"
+    warn "models/${f} — missing (run python scripts/build_models.py)"
     MISSING=$((MISSING+1))
   fi
 done

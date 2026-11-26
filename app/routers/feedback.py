@@ -49,8 +49,9 @@ async def submit_feedback(req: FeedbackRequest):
     }
 
     # Append one JSON line to the feedback log file
+    log_path = settings.resolved_feedback_log_path()
     try:
-        with open(settings.feedback_log_path, "a", encoding="utf-8") as f:
+        with open(log_path, "a", encoding="utf-8") as f:
             f.write(json.dumps(entry) + "\n")
     except Exception as e:
         # Don't crash the app if feedback logging fails
@@ -74,8 +75,9 @@ async def submit_feedback(req: FeedbackRequest):
 async def get_feedback_stats():
     entries = []
 
+    log_path = settings.resolved_feedback_log_path()
     try:
-        with open(settings.feedback_log_path, "r", encoding="utf-8") as f:
+        with open(log_path, "r", encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if line:

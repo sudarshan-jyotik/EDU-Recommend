@@ -4,6 +4,7 @@ FastAPI application entry point with custom error handlers, startup logs, /api/v
 """
 
 from contextlib import asynccontextmanager
+from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -90,7 +91,6 @@ async def api_info():
     })
 
 
-try:
-    app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
-except RuntimeError:
-    pass
+_FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
+if _FRONTEND_DIR.exists():
+    app.mount("/", StaticFiles(directory=str(_FRONTEND_DIR), html=True), name="frontend")

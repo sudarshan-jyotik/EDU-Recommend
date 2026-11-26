@@ -60,6 +60,8 @@ function initNav(activePage = '') {
         ${escHtml(profile.branch)} · Sem ${escHtml(profile.semester)}
       </span>`;
   }
+  const profileBtn = document.querySelector('.nav-profile-btn');
+  if (profileBtn && profile.isSet) profileBtn.textContent = 'Edit Profile';
 }
 
 /* ── API fetch wrapper ────────────────────────────────────────────── */
@@ -127,7 +129,7 @@ function initAutocomplete(input, list, endpoint, onSelect, debounceMs = 200) {
 
       list.innerHTML = suggestions.map(s => {
         const safe      = escHtml(s);
-        const escaped_q = escHtml(q);
+        const escaped_q = escHtml(q).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const highlighted = safe.replace(
           new RegExp(`(${escaped_q})`, 'gi'),
           '<mark>$1</mark>',
@@ -230,6 +232,7 @@ function coverOrPlaceholder(coverUrl, title) {
   if (coverUrl && coverUrl.startsWith('http')) {
     return `<img src="${escHtml(coverUrl)}" alt="${escHtml(title)}"
               loading="lazy"
+              onload="if(this.naturalWidth<=1){this.style.display='none';this.nextElementSibling.style.display='flex'}"
               onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
             <div class="cover-placeholder" style="display:none">&#9635;</div>`;
   }

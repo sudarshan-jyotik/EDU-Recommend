@@ -1,0 +1,16 @@
+data/
+notebooks/
+docs/
+tests/
+*.csv
+*.pkl
+.github/
+Dockerfile
+docker-compose.yml
+render.yaml
+Procfile
+pytest.ini
+.env
+__pycache__/
+*.pyc
+.pytest_cache/

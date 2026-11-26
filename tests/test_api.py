@@ -10,9 +10,9 @@ import os
 import pytest
 from fastapi.testclient import TestClient
 
-SKIP_ML = os.getenv("SKIP_MODEL_TESTS", "0") == "1" or \
-          not os.path.exists("models/book_model.pkl")
-skip_ml = pytest.mark.skipif(SKIP_ML, reason="ML pickles not in models/")
+HAS_BOOK_MODEL = os.path.exists("models/books_bundle.npz") or os.path.exists("models/book_model.pkl")
+SKIP_ML = os.getenv("SKIP_MODEL_TESTS", "0") == "1" or not HAS_BOOK_MODEL
+skip_ml = pytest.mark.skipif(SKIP_ML, reason="ML artifacts not in models/")
 
 from app.main import app
 
@@ -130,6 +130,22 @@ class TestCourses:
                         json={"topic": "machine learning", "n": 5})
         assert r.status_code == 200
         assert len(r.json()["results"]) > 0
+
+    @skip_ml
+    def test_recommend_with_level_and_branch_filter(self):
+        r = client.post("/api/v1/courses/recommend",
+                        json={"topic": "ml", "level": "Intermediate", "branch": "CSE", "n": 5})
+        assert r.status_code == 200
+        data = r.json()
+        assert data["branch_boost"] is True
+        assert data["level_filter"] == "Intermediate"
+        assert len(data["results"]) == 5
+
+    @skip_ml
+    def test_courses_autocomplete(self):
+        r = client.get("/api/v1/courses/autocomplete?q=python")
+        assert r.status_code == 200
+        assert isinstance(r.json().get("suggestions"), list)
 
     def test_recommend_invalid_level_422(self):
         r = client.post("/api/v1/courses/recommend",

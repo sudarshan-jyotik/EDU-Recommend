@@ -148,8 +148,8 @@ function renderResults(results, query) {
         </div>
         <p class="card-title">${escHtml(r.title)}</p>
         <p class="card-author">${escHtml(r.author)}</p>
-        <button class="enrol-btn" style="margin-top:.5rem;font-size:.72rem"
-          onclick="searchInput.value=${JSON.stringify(r.title)};doSearch(${JSON.stringify(r.title)})">
+        <button class="enrol-btn similar-btn" style="margin-top:.5rem;font-size:.72rem"
+          data-title="${escHtml(r.title)}">
           Similar to this →
         </button>
         <div class="feedback-row">
@@ -161,6 +161,14 @@ function renderResults(results, query) {
   </div>`;
 
   animateSimBars();
+
+  container.querySelectorAll('.similar-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const t = btn.getAttribute('data-title');
+      searchInput.value = t;
+      doSearch(t);
+    });
+  });
 
   container.querySelectorAll('.thumb-btn').forEach(btn => {
     btn.addEventListener('click', async function() {
